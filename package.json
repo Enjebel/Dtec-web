@@ -1,12 +1,12 @@
 {
-  "name": "app-template",
+  "name": "dtec-platform",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "preview": "vite preview",
-    "build": "tsc -b && vite build",
+    "build": "npx convex codegen && tsc -b && vite build",
     "lint": "eslint .",
     "prettier-fix": "prettier --write .",
     "prettier-check": "prettier --check ."
