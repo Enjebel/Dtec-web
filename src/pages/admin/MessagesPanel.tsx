@@ -10,7 +10,7 @@ type Message = Doc<"messages">;
 
 export default function MessagesPanel() {
   const messages = useQuery(api.messages.list);
-  const markRead = useMutation(api.messages.markRead);
+  const markAsRead = useMutation(api.messages.markAsRead);
   const removeMsg = useMutation(api.messages.remove);
 
   const handleMarkRead = async (id: Message["_id"]) => {

@@ -3,8 +3,9 @@ import { ClerkProvider, useAuth } from "@clerk/clerk-react";
 import { ConvexProviderWithClerk } from "convex/react-clerk";
 import { ConvexReactClient } from "convex/react";
 
-// Initialize Convex Client
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL);
+// Initialize Convex Client with a fallback to prevent build-time crashes
+const convexUrl = import.meta.env.VITE_CONVEX_URL || "";
+const convex = new ConvexReactClient(convexUrl);
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 /**
@@ -12,16 +13,23 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
  * This handles the bridge between Clerk (Identity) and Convex (Database).
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  // Critical check for Clerk key
   if (!PUBLISHABLE_KEY) {
-    // This will show in the Vercel logs if you forget the Env Var
-    console.error("DTEC System: Missing Clerk Publishable Key");
+    if (import.meta.env.DEV) {
+      console.error("DTEC System: Missing Clerk Publishable Key in .env.local");
+    }
+    return <>{children}</>;
+  }
+
+  // Ensure Convex URL exists before wrapping with the provider
+  if (!convexUrl) {
     return <>{children}</>;
   }
 
   return (
     <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
-        <div id="auth-provider-wrapper" style={{ minHeight: "100vh" }}>
+        <div id="auth-provider-wrapper" className="min-h-screen">
           {children}
         </div>
       </ConvexProviderWithClerk>
