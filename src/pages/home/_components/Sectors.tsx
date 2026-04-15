@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 // IMPORT DIIMATS LOGO
 const DIIMATS_LOGO = "/icon/diimats.png"; 
 
-// FULL DATA OBJECT (unchanged)
 const sectorInfo: Record<string, any> = {
   architecture: { 
     title: "Architecture & Construction", 
@@ -79,7 +78,6 @@ export default function Sectors() {
     );
   }
 
-  // Handle ordering and matching dynamically
   const sortedSectors = [...sectors].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   const activeSectorData = sectorInfo[activeSectorKey] || sectorInfo["academy"];
 
@@ -91,7 +89,8 @@ export default function Sectors() {
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-4 mb-12">
           {sortedSectors.map((sector) => (
             <button
-              key={sector._id}
+              // FIX: Use sector.key instead of sector._id to satisfy TS compiler
+              key={sector.key} 
               onClick={() => setActiveSectorKey(sector.key)}
               className={`p-6 rounded-[2.5rem] transition-all border-2 text-left flex flex-col justify-between min-h-[170px] cursor-pointer group ${
                 activeSectorKey === sector.key 
@@ -99,7 +98,6 @@ export default function Sectors() {
                 : 'bg-[#F3F4F6] border-transparent opacity-70 hover:opacity-100 hover:bg-[#F9FAFB]'
               }`}
             >
-              {/* FIXED AREA: Conditional Logo for Academy */}
               <div className="mb-4">
                 {sector.key === "academy" ? (
                   <img 
@@ -116,7 +114,7 @@ export default function Sectors() {
 
               <div className="mt-auto">
                 <span className="block text-sm font-black uppercase italic leading-tight text-[#1F2937]">
-                  {sectorInfo[sector.key]?.title.split(' ')[0] || sector.key} {/* Dynamic label */}
+                  {sectorInfo[sector.key]?.title.split(' ')[0] || sector.key}
                 </span>
                 <span className={`text-[9px] font-black uppercase tracking-widest mt-1 ${activeSectorKey === sector.key ? 'text-primary' : 'text-gray-500'}`}>
                   {sector.key}
@@ -126,7 +124,7 @@ export default function Sectors() {
           ))}
         </div>
 
-        {/* Dynamic Content Display (Nested sections preserved) */}
+        {/* Dynamic Content Display */}
         <AnimatePresence mode="wait">
           <motion.div 
             key={activeSectorKey}
@@ -153,17 +151,16 @@ export default function Sectors() {
                 {activeSectorData.desc}
               </p>
               
-              {/* Preserve detailed nested sections */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                 {activeSectorData.sections.map((section: any, idx: number) => (
-                  <div key={idx} className="space-y-6">
+                  <div key={`section-${idx}`} className="space-y-6">
                     <h4 className="text-primary font-black uppercase text-[11px] tracking-[0.3em] flex items-center gap-3">
                       <span className="w-8 h-[2px] bg-primary"></span>
                       {section.label}
                     </h4>
                     <div className="space-y-3">
                       {section.items.map((item: string, i: number) => (
-                        <div key={i} className="flex items-center gap-4 font-black text-[10px] uppercase text-gray-700 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+                        <div key={`item-${i}`} className="flex items-center gap-4 font-black text-[10px] uppercase text-gray-700 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
                           <span className="w-2 h-2 bg-primary rounded-full"></span> 
                           {item}
                         </div>
@@ -174,7 +171,7 @@ export default function Sectors() {
               </div>
             </div>
 
-            {/* Sidebar preserved */}
+            {/* Sidebar */}
             <div className="lg:w-1/3">
               <div className="sticky top-32 bg-[#1F2937] rounded-[3rem] p-10 text-white border-b-[12px] border-primary shadow-2xl">
                 <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6">

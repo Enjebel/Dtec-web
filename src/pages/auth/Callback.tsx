@@ -9,11 +9,14 @@ import { Button } from "@/components/ui/button.tsx";
 export default function AuthCallback() {
   const navigate = useNavigate();
   const { isAuthenticated: isConvexAuthenticated } = useConvexAuth();
-  const updateCurrentUser = useMutation(api.users.updateCurrentUser);
+  
+  // FIX: Changed from api.users.updateCurrentUser to api.users.store
+  const storeUser = useMutation(api.users.store);
 
   const onSync = useCallback(async () => {
-    await updateCurrentUser();
-  }, [updateCurrentUser]);
+    // FIX: Calling the correct mutation name
+    await storeUser();
+  }, [storeUser]);
 
   const navigateHome = useCallback(
     () => navigate("/", { replace: true }),
