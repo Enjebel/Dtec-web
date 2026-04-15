@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Offline - DTEC System</title>
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background: #0f172a; /* Deep Charcoal Grey */
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        text-align: center;
+        padding: 2rem;
+      }
+      .container { max-width: 360px; }
+      .logo {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 2rem;
+        display: block;
+        filter: grayscale(1) brightness(2); /* Industrial Look */
+        opacity: 0.8;
+      }
+      h1 {
+        font-size: 2.5rem;
+        font-weight: 900;
+        text-transform: uppercase;
+        font-style: italic;
+        letter-spacing: -0.05em;
+        line-height: 1;
+        margin-bottom: 1rem;
+      }
+      .accent { color: #f97316; } /* DTEC Orange */
+      p {
+        color: #64748b;
+        font-weight: 700;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        line-height: 1.6;
+        margin-bottom: 2.5rem;
+      }
+      .btn {
+        display: inline-block;
+        background: #f97316;
+        color: #fff;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.2em;
+        font-size: 0.7rem;
+        padding: 1.25rem 3rem;
+        border-radius: 0.5rem;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        border: none;
+        cursor: pointer;
+      }
+      .btn:hover {
+        background: #ea580c;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <img class="logo" src="/icon/icon-192.png" alt="DTEC" />
+      <h1>Link <span class="accent">Severed</span></h1>
+      <p>Connection lost. The DTEC Administrative terminal requires an active uplink.</p>
+      <button class="btn" onclick="window.location.reload()">Retry Connection</button>
+    </div>
+  </body>
+</html>

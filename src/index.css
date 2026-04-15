@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+  /* DTEC Brand Colors */
+  --color-primary: #f97316;    /* Vibrant Orange */
+  --color-secondary: #4b5563;  /* Sleek Grey */
+  --color-background: #ffffff;
+  --color-foreground: #111827;
+
+  --radius-xl: 1.5rem;
+  --radius-2xl: 2rem;
+  --radius-3xl: 3rem;
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --primary: 24.6 95% 53.1%;    /* Orange */
+    --secondary: 215.4 16.3% 46.9%; /* Grey */
+    --muted: 210 40% 96.1%;
+    --accent: 24.6 95% 53.1%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --primary: 24.6 95% 53.1%;
+    --secondary: 215.4 16.3% 56.9%;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-[#F8FAFC] text-[#0F172A] antialiased;
+    /* Hercules style background grain/gradient */
+    background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
+    background-size: 24px 24px;
+  }
+}
