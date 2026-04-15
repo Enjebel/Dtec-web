@@ -10,36 +10,46 @@ import type { Doc } from "@/convex/_generated/dataModel.d.ts";
 type Sector = Doc<"sectors">;
 type SectionData = { label: string; items: string[] };
 
-const EMPTY_SECTOR: Omit<Sector, "_id" | "_creationTime"> = {
+// Helper to create a blank sector that satisfies the upsert requirements
+const createBlankSector = () => ({
   key: "",
   title: "",
-  emoji: "",
+  emoji: "📦",
   imageUrl: "",
   tag: "",
   desc: "",
   keywords: "",
   order: 99,
-  sections: [],
-};
+  sections: [] as SectionData[],
+});
 
 export default function SectorsPanel() {
   const sectors = useQuery(api.sectors.list);
   const upsertSector = useMutation(api.sectors.upsert);
   const removeSector = useMutation(api.sectors.remove);
-  const [editing, setEditing] = useState<Omit<Sector, "_id" | "_creationTime"> | null>(null);
+  
+  // State for the modal
+  const [editing, setEditing] = useState<ReturnType<typeof createBlankSector> | null>(null);
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const openNew = () => {
     setIsNew(true);
-    setEditing({ ...EMPTY_SECTOR });
+    setEditing(createBlankSector());
   };
 
   const openEdit = (s: Sector) => {
     setIsNew(false);
     setEditing({
-      key: s.key, title: s.title, emoji: s.emoji, imageUrl: s.imageUrl,
-      tag: s.tag, desc: s.desc, keywords: s.keywords, order: s.order, sections: s.sections,
+      key: s.key,
+      title: s.title,
+      emoji: s.emoji ?? "",
+      imageUrl: s.imageUrl ?? "",
+      tag: s.tag,
+      desc: s.desc,
+      keywords: s.keywords ?? "",
+      order: s.order,
+      sections: s.sections ?? [],
     });
   };
 
@@ -76,10 +86,10 @@ export default function SectorsPanel() {
     }
   };
 
-  const updateSection = (idx: number, field: "label" | "items", value: string | string[]) => {
+  const updateSection = (idx: number, field: keyof SectionData, value: string | string[]) => {
     if (!editing) return;
     const sections = [...editing.sections];
-    sections[idx] = { ...sections[idx], [field]: value };
+    sections[idx] = { ...sections[idx], [field]: value } as SectionData;
     setEditing({ ...editing, sections });
   };
 
@@ -109,7 +119,7 @@ export default function SectorsPanel() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black uppercase italic text-foreground">Sectors</h2>
-          <p className="text-muted-foreground font-semibold text-sm">Manage all DTEC business sectors shown on the website.</p>
+          <p className="text-muted-foreground font-semibold text-sm">Manage business sectors shown on the site.</p>
         </div>
         <button
           onClick={openNew}
@@ -122,11 +132,10 @@ export default function SectorsPanel() {
       <div className="space-y-3">
         {sectors.length === 0 ? (
           <div className="text-center py-10 border-2 border-dashed rounded-3xl text-muted-foreground font-bold">
-            No sectors found. Add your first sector to get started!
+            No sectors found.
           </div>
         ) : (
           sectors.map((s) => (
-            /* FIXED: Using _id as key ensures uniqueness even if 'key' field is empty */
             <div key={s._id} className="bg-white rounded-3xl p-6 border border-border shadow-sm flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
                 {s.imageUrl ? (
@@ -137,7 +146,6 @@ export default function SectorsPanel() {
                 <div>
                   <p className="font-black text-sm uppercase italic text-foreground">{s.title}</p>
                   <p className="text-[9px] font-black uppercase tracking-widest text-primary">{s.tag}</p>
-                  <p className="text-muted-foreground text-xs font-semibold mt-0.5 line-clamp-1">{s.desc}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -153,7 +161,6 @@ export default function SectorsPanel() {
         )}
       </div>
 
-      {/* Edit Modal */}
       {editing && (
         <div className="fixed inset-0 z-[300] flex items-start justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
           <div className="bg-white rounded-[2.5rem] w-full max-w-2xl my-8 shadow-2xl">
@@ -168,23 +175,21 @@ export default function SectorsPanel() {
 
             <div className="p-8 space-y-5">
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Key (URL-safe, e.g. academy)" value={editing.key} disabled={!isNew} onChange={(v) => setEditing({ ...editing, key: v })} />
+                <Field label="Key (academy)" value={editing.key} disabled={!isNew} onChange={(v) => setEditing({ ...editing, key: v })} />
                 <Field label="Title" value={editing.title} onChange={(v) => setEditing({ ...editing, title: v })} />
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Tag (short subtitle)" value={editing.tag} onChange={(v) => setEditing({ ...editing, tag: v })} />
-                <Field label="Emoji (if no image)" value={editing.emoji ?? ""} onChange={(v) => setEditing({ ...editing, emoji: v })} />
+                <Field label="Tag" value={editing.tag} onChange={(v) => setEditing({ ...editing, tag: v })} />
+                <Field label="Emoji" value={editing.emoji} onChange={(v) => setEditing({ ...editing, emoji: v })} />
               </div>
-              <Field label="Image URL (optional)" value={editing.imageUrl ?? ""} onChange={(v) => setEditing({ ...editing, imageUrl: v })} />
+              <Field label="Image URL" value={editing.imageUrl} onChange={(v) => setEditing({ ...editing, imageUrl: v })} />
               <TextArea label="Description" value={editing.desc} onChange={(v) => setEditing({ ...editing, desc: v })} />
-              <TextArea label="SEO Keywords (comma-separated)" value={editing.keywords} onChange={(v) => setEditing({ ...editing, keywords: v })} />
-              <Field label="Display Order (number)" value={String(editing.order)} onChange={(v) => setEditing({ ...editing, order: parseInt(v) || 0 })} />
+              <Field label="Order" value={String(editing.order)} onChange={(v) => setEditing({ ...editing, order: parseInt(v) || 0 })} />
 
-              {/* Sections */}
-              <div>
+              <div className="pt-4 border-t border-border">
                 <div className="flex items-center justify-between mb-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Sections</label>
-                  <button onClick={addSection} className="text-[10px] font-black uppercase text-primary flex items-center gap-1 cursor-pointer hover:underline">
+                  <button onClick={addSection} className="text-[10px] font-black uppercase text-primary flex items-center gap-1 cursor-pointer">
                     <Plus size={12} /> Add Section
                   </button>
                 </div>
@@ -202,10 +207,10 @@ export default function SectorsPanel() {
             </div>
 
             <div className="p-8 border-t border-border flex gap-3">
-              <button onClick={() => setEditing(null)} className="flex-1 py-4 bg-muted text-foreground font-black rounded-2xl uppercase tracking-widest text-[10px] cursor-pointer hover:bg-muted/80 transition-all">
+              <button onClick={() => setEditing(null)} className="flex-1 py-4 bg-muted text-foreground font-black rounded-2xl uppercase tracking-widest text-[10px] cursor-pointer">
                 Cancel
               </button>
-              <button onClick={handleSave} disabled={saving} className="flex-1 py-4 bg-primary text-white font-black rounded-2xl uppercase tracking-widest text-[10px] shadow-lg hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-60">
+              <button onClick={handleSave} disabled={saving} className="flex-1 py-4 bg-primary text-white font-black rounded-2xl uppercase tracking-widest text-[10px] shadow-lg disabled:opacity-60">
                 {saving ? "Saving..." : "Save Sector"}
               </button>
             </div>
@@ -246,7 +251,7 @@ function TextArea({ label, value, onChange }: { label: string; value: string; on
 
 function SectionEditor({ section, onUpdate, onRemove }: {
   section: SectionData;
-  onUpdate: (field: "label" | "items", value: string | string[]) => void;
+  onUpdate: (field: keyof SectionData, value: string | string[]) => void;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(true);
@@ -257,25 +262,23 @@ function SectionEditor({ section, onUpdate, onRemove }: {
       <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setOpen(!open)}>
         <span className="font-black text-[11px] uppercase tracking-tight text-foreground">{section.label || "Untitled Section"}</span>
         <div className="flex items-center gap-2">
-          <button onClick={(e) => { e.stopPropagation(); onRemove(); }} className="p-1.5 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-all cursor-pointer">
+          <button onClick={(e) => { e.stopPropagation(); onRemove(); }} className="p-1.5 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive cursor-pointer">
             <Trash2 size={14} />
           </button>
-          {open ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
+          {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </div>
       </div>
       {open && (
         <div className="p-4 pt-0 space-y-3">
           <Field label="Section Label" value={section.label} onChange={(v) => onUpdate("label", v)} />
           <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">
-              Items (one per line)
-            </label>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1.5">Items (one per line)</label>
             <textarea
               value={itemsText}
               onChange={(e) => onUpdate("items", e.target.value.split("\n").filter((l) => l.trim()))}
               rows={4}
               className="w-full p-3.5 bg-white border border-border rounded-2xl font-semibold text-sm outline-none focus:border-primary transition-colors resize-none"
-              placeholder="Item 1&#10;Item 2&#10;Item 3"
+              placeholder="Item 1&#10;Item 2"
             />
           </div>
         </div>

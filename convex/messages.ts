@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
+import { ConvexError } from "convex/values";
 
 /**
  * FETCH ALL MESSAGES
@@ -30,7 +31,7 @@ export const getUnreadCount = query({
 
 /**
  * SUBMIT NEW MESSAGE
- * THE FIX: This allows the public contact form to save data to the database.
+ * Allows the public contact form to save data to the database.
  */
 export const submit = mutation({
   args: {
@@ -43,7 +44,7 @@ export const submit = mutation({
       name: args.name,
       email: args.email,
       message: args.message,
-      isRead: false, // Defaulting to false so it shows as 'New' in admin
+      isRead: false,
     });
     return messageId;
   },
@@ -57,5 +58,30 @@ export const markAsRead = mutation({
   args: { id: v.id("messages") },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { isRead: true });
+  },
+});
+
+/**
+ * REMOVE MESSAGE
+ * ADDED: Fixes the 'remove' mismatch in MessagesPanel.tsx
+ */
+export const remove = mutation({
+  args: { id: v.id("messages") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new ConvexError("Not authenticated");
+
+    // Optional: Check if user is admin before deleting
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+
+    if (user?.role !== "admin") {
+      throw new ConvexError("Only admins can delete messages.");
+    }
+
+    await ctx.db.delete(args.id);
+    return true;
   },
 });

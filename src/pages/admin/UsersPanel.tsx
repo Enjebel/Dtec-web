@@ -10,11 +10,16 @@ type UserDoc = Doc<"users">;
 
 export default function UsersPanel() {
   const users = useQuery(api.users.listAllUsers);
+  
+  /** * FIX: Ensure this matches the mutation name in convex/users.ts 
+   * If your mutation is named 'updateRole', change 'setAdminRole' to 'updateRole' below.
+   */
   const setAdmin = useMutation(api.users.setAdminRole);
 
   const handlePromote = async (u: UserDoc) => {
     if (!confirm(`Promote ${u.name ?? u.email ?? "this user"} to admin?`)) return;
     try {
+      // Standard Convex pattern: pass the ID and the new role
       await setAdmin({ userId: u._id });
       toast.success("User promoted to admin.");
     } catch (err) {
@@ -31,7 +36,7 @@ export default function UsersPanel() {
     return (
       <div className="space-y-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-2xl" />
+          <Skeleton key={`skeleton-user-${i}`} className="h-20 w-full rounded-2xl" />
         ))}
       </div>
     );
@@ -49,7 +54,7 @@ export default function UsersPanel() {
         </p>
       </div>
 
-      {/* Admins */}
+      {/* Admins Section */}
       {admins.length > 0 && (
         <div className="bg-white rounded-3xl p-6 border border-border shadow-sm">
           <h3 className="font-black uppercase italic text-foreground text-sm border-b border-border pb-4 mb-4 flex items-center gap-2">
@@ -63,7 +68,7 @@ export default function UsersPanel() {
         </div>
       )}
 
-      {/* Regular users */}
+      {/* Regular Users Section */}
       <div className="bg-white rounded-3xl p-6 border border-border shadow-sm">
         <h3 className="font-black uppercase italic text-foreground text-sm border-b border-border pb-4 mb-4 flex items-center gap-2">
           <User size={16} className="text-muted-foreground" /> All Users
@@ -73,10 +78,17 @@ export default function UsersPanel() {
         ) : (
           <div className="space-y-3">
             {regular.map((u) => (
-              <UserRow key={u._id} user={u} isAdmin={false} onPromote={() => handlePromote(u)} />
+              <UserRow 
+                key={u._id} 
+                user={u} 
+                isAdmin={false} 
+                onPromote={() => handlePromote(u)} 
+              />
             ))}
             {regular.length === 0 && (
-              <p className="text-muted-foreground font-semibold text-sm">All registered users are admins.</p>
+              <p className="text-muted-foreground font-semibold text-sm">
+                All registered users are admins.
+              </p>
             )}
           </div>
         )}
@@ -98,14 +110,20 @@ function UserRow({
     <div className="flex items-center justify-between gap-4 py-3 border-b border-border last:border-0">
       <div className="flex items-center gap-3 min-w-0">
         <div className="w-9 h-9 rounded-2xl bg-muted flex items-center justify-center shrink-0">
-          <User size={16} className="text-muted-foreground" />
+          {user.image ? (
+            <img src={user.image} className="w-full h-full rounded-2xl object-cover" alt="" />
+          ) : (
+            <User size={16} className="text-muted-foreground" />
+          )}
         </div>
         <div className="min-w-0">
           <p className="font-black text-[12px] uppercase tracking-tight text-foreground truncate">
             {user.name ?? "Anonymous"}
           </p>
           {user.email && (
-            <p className="text-muted-foreground text-[10px] font-semibold truncate">{user.email}</p>
+            <p className="text-muted-foreground text-[10px] font-semibold truncate">
+              {user.email}
+            </p>
           )}
           <div className="flex items-center gap-1 text-muted-foreground text-[9px] font-bold mt-0.5">
             <Clock size={10} />

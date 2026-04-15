@@ -20,7 +20,6 @@ export const getMe = query({
 
 /**
  * Check if the current user has administrative privileges.
- * FIXED: Empty args to match the frontend call.
  */
 export const isAdmin = query({
   args: {},
@@ -54,6 +53,31 @@ export const listAllUsers = query({
     if (user?.role !== "admin") return [];
 
     return await ctx.db.query("users").collect();
+  },
+});
+
+/**
+ * Promote a user to Admin role.
+ * ADDED: This matches the call in UsersPanel.tsx
+ */
+export const setAdminRole = mutation({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new ConvexError("Not authenticated");
+
+    // Security: Check if the person making the request is an admin
+    const currentUser = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+
+    if (currentUser?.role !== "admin") {
+      throw new ConvexError("Only admins can promote other users.");
+    }
+
+    await ctx.db.patch(args.userId, { role: "admin" });
+    return true;
   },
 });
 
@@ -104,6 +128,7 @@ export const makeFirstAdmin = mutation({
 
     const anyAdmin = await ctx.db
       .query("users")
+      .withIndex("by_token") // Using index is more efficient
       .filter((q) => q.eq(q.field("role"), "admin"))
       .first();
 

@@ -10,16 +10,22 @@ type Message = Doc<"messages">;
 
 export default function MessagesPanel() {
   const messages = useQuery(api.messages.list);
+  // Renamed to match the call in handleMarkRead and the backend API
   const markAsRead = useMutation(api.messages.markAsRead);
+  // Ensure this mutation exists in your convex/messages.ts
   const removeMsg = useMutation(api.messages.remove);
 
   const handleMarkRead = async (id: Message["_id"]) => {
     try {
-      await markRead({ id });
+      // Corrected from markRead to markAsRead
+      await markAsRead({ id });
+      toast.success("Marked as read");
     } catch (err) {
       if (err instanceof ConvexError) {
         const d = err.data as { message: string };
         toast.error(d.message);
+      } else {
+        toast.error("Failed to update message");
       }
     }
   };
@@ -29,7 +35,7 @@ export default function MessagesPanel() {
     try {
       await removeMsg({ id });
       toast.success("Message deleted.");
-    } catch {
+    } catch (err) {
       toast.error("Failed to delete.");
     }
   };
@@ -37,7 +43,9 @@ export default function MessagesPanel() {
   if (messages === undefined) {
     return (
       <div className="space-y-4">
-        {Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-2xl" />)}
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-2xl" />
+        ))}
       </div>
     );
   }
@@ -45,17 +53,24 @@ export default function MessagesPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-black uppercase italic text-foreground">Messages</h2>
+        <h2 className="text-2xl font-black uppercase italic text-foreground">
+          Messages
+        </h2>
         <p className="text-muted-foreground font-semibold text-sm">
-          {messages.length} total &middot; {messages.filter((m) => !m.isRead).length} unread
+          {messages.length} total &middot;{" "}
+          {messages.filter((m) => !m.isRead).length} unread
         </p>
       </div>
 
       {messages.length === 0 ? (
         <div className="bg-white rounded-3xl p-16 border border-border text-center">
           <Mail size={40} className="mx-auto text-muted-foreground mb-4" />
-          <p className="font-black uppercase italic text-foreground text-lg">No messages yet</p>
-          <p className="text-muted-foreground font-semibold text-sm mt-2">Messages from the contact form will appear here.</p>
+          <p className="font-black uppercase italic text-foreground text-lg">
+            No messages yet
+          </p>
+          <p className="text-muted-foreground font-semibold text-sm mt-2">
+            Messages from the contact form will appear here.
+          </p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -63,7 +78,9 @@ export default function MessagesPanel() {
             <div
               key={m._id}
               className={`bg-white rounded-3xl p-6 border shadow-sm transition-all ${
-                m.isRead ? "border-border opacity-70" : "border-primary/30 shadow-primary/5"
+                m.isRead
+                  ? "border-border opacity-70"
+                  : "border-primary/30 shadow-primary/5"
               }`}
             >
               <div className="flex items-start justify-between gap-4">
@@ -83,7 +100,9 @@ export default function MessagesPanel() {
                       </span>
                     )}
                   </div>
-                  <p className="text-foreground font-semibold text-sm leading-relaxed">{m.message}</p>
+                  <p className="text-foreground font-semibold text-sm leading-relaxed">
+                    {m.message}
+                  </p>
                   <div className="flex items-center gap-1 mt-3 text-muted-foreground text-[10px] font-bold">
                     <Clock size={11} />
                     {new Date(m._creationTime).toLocaleString()}
